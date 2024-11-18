@@ -16,6 +16,7 @@ xu=linspace(-1,1,N1)';
 
 % Initial guess
 y=cos((2*(0:N)'+1)*pi/(2*N+2))+(0.27/N1)*sin(pi*xu*N/N2);
+% this is a comment
 
 % Legendre-Gauss Vandermonde Matrix
 L=zeros(N1,N2);
