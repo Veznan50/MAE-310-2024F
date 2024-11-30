@@ -4,10 +4,10 @@ g = 1.0;           % u    = g  at x = 1
 h = 0.0;           % -u,x = h  at x = 0
 
 % Setup the mesh
-pp   = 2;              % polynomial degree二次多项式
-n_en = pp + 1;         % number of element or local nodes局部map的节点数为3
-n_el = 2;              % number of elements单元数为2
-n_np = n_el * pp + 1;  % number of nodal points总的节点数5个
+pp   = 1;              % polynomial degree二次多项式，还要2和3
+n_en = pp + 1;         % number of element or local nodes局部map的节点数
+n_el = 2;              % number of elements单元数为2，还要改4,6,8,10,12,14,16
+n_np = n_el * pp + 1;  % number of nodal points总的节点数
 n_eq = n_np - 1;       % number of equations方程数
 n_int = 10;            %积分点数量
 
