@@ -51,6 +51,7 @@ for ee = 1 : n_el            %遍历所有的元素
     for aa = 1 : n_en    %开始了一个循环，遍历当前元素的所有节点。
       x_l    = x_l    + x_ele(aa) * PolyShape(pp, aa, xi(qua), 0);
       %计算当前积分点的物理坐标 x_l，通过求和每个节点坐标与相应的形状函数值的乘积。
+      %          调用function val = PolyShape(degree, a, xi, der)
       dx_dxi = dx_dxi + x_ele(aa) * PolyShape(pp, aa, xi(qua), 1);
       %计算雅可比行列式 dx_dxi，通过求和每个节点坐标与相应的形状函数导数的乘积。
     end

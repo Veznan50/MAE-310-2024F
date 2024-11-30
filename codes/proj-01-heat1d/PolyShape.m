@@ -1,11 +1,12 @@
 function val = PolyShape(degree, a, xi, der)
+    %der是导数阶数，a为物理节点编号，一阶只有两个点，xi为参考元内节点,见笔记6开头的拉格多项式
 switch degree
-    % linear basis function
+    % linear basis function，n_en=2,xi1=-1,xi2=1
     case 1
         if a == 1
-            if der == 0
+            if der == 0%求函数值
                 val = 0.5 * (1-xi);
-            elseif der == 1
+            elseif der == 1%求导数值
                 val = -0.5;
             end
         elseif a == 2
@@ -16,7 +17,7 @@ switch degree
             end
         end
 
-    % quadratic basis function
+    % quadratic basis function,n_en=3,xi为-1,0,1
     case 2
         if a == 1
             if der == 0
@@ -38,7 +39,7 @@ switch degree
             end
         end
 
-    % cubic basis function
+    % cubic basis function,n_en=4,xi=-1,-1/3,1/3,1,间隔2/3
     case 3
         if a == 1
             if der == 0
