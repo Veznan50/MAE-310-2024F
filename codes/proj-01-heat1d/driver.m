@@ -24,7 +24,7 @@ for ee = 1 : n_el      %遍历所有的元素（ee代表当前的元素编号）
                                      % 然后加上当前节点的编号（aa）来计算的。
   end
 end
-
+%IEN 矩阵提供了从局部编号到全局编号的映射，用于组装全局刚度矩阵和载荷向量
 % Setup the ID array for the problem
 ID = 1 : n_np;
 ID(end) = 0;
@@ -88,8 +88,8 @@ for ee = 1 : n_el            %遍历所有的元素
   end
 end
 
-% ee = 1 F = NA(0)xh
-F(ID(IEN(1,1))) = F(ID(IEN(1,1))) + h;
+% ee = 1 F = NA(0)xh，第一个element有边界条件h
+F(ID(IEN(1,1))) = F(ID(IEN(1,1))) + h;%LM=ID(IEN)
 %将第一个元素的第一个节点的载荷向量分量加上边界条件值 h。这里，ID(IEN(1,1)) 是第一个元素的第一个节点的全局自由度编号。
 
 % Solve Kd = F equation
@@ -98,6 +98,15 @@ d_temp = K \ F;
 %使用 MATLAB 的左除运算符 \ 解方程组 Kd = F，得到未知自由度向量 d_temp。
 disp = [d_temp; g];
 %将解向量 d_temp 和边界条件值 g 组合成一个新向量 disp。
+
+%problem_2b_HW4
+cc = 1:8;
+eL2=zeros(8,1);
+eH1=zeros(8,1);
+n_el=cc*2;
+
+
+
 % Postprocessing: visualization
 plot(x_coor, disp, '--r','LineWidth',3);
 %绘制节点坐标 x_coor 对应的位移 disp，使用红色虚线，线宽为3。
@@ -147,3 +156,6 @@ end
 plot(x_sam, u_sam, '-r','LineWidth',3);
 hold on;
 plot(x_sam, y_sam, '-k','LineWidth',3);
+
+
+
