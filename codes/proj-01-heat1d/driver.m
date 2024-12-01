@@ -47,7 +47,7 @@ for ee = 1 : n_el
   k_ele = zeros(n_en, n_en); 
   f_ele = zeros(n_en, 1);    
 
-  x_ele = x_coor(IEN(:,ee)); % x_ele(aa) = x_coor(A) with A = IEN(ee, aa)
+  x_ele = x_coor(IEN(ee,:)); % x_ele(aa) = x_coor(A) with A = IEN(ee, aa)
 
   % quadrature loop
   for qua = 1 : n_int    
@@ -93,7 +93,7 @@ d_temp = K \ F;
 
 disp = [d_temp; g];
 
- % e_L2 numerator part and denominator part第一个误差
+ % e_L2 第一个误差
     numerators = 0.0;     %分子
     denominators = 0.0;   %分母
     for ee = 1 : n_el
@@ -117,7 +117,7 @@ disp = [d_temp; g];
     e_L2(ii) = sqrt(numerators/denominators);
    
 
-    % e_H1 numerator part and denominator part，第二个误差
+    % e_H1 第二个误差
     numerators = 0.0;
     denominators = 0.0;
     for ee = 1 : n_el
