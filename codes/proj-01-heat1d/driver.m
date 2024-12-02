@@ -6,7 +6,7 @@ exact = @(x) +x.^5;   %谁家sb把积分搞成求导
 exact_x = @(x)+5*x.^4;%我是个傻逼我是个傻逼我是个傻逼我是个傻逼！
 
 % Setup the mesh
-pp   = 1;              % polynomial degree
+pp   = 3;              % polynomial degree，改2和3就解出2c问的答案了
 n_en = pp + 1;         % number of element or local nodes
 n_int = 10;
 
