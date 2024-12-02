@@ -2,8 +2,8 @@
 f = @(x) -20*x.^3; % f(x) is the source
 g = 1.0;           % u    = g  at x = 1
 h = 0.0;           % -u,x = h  at x = 0
-exact = @(x) -20*x.^3;
-exact_x = @(x)-60*x.^2;
+exact = @(x) +x.^5;   %谁家sb把积分搞成求导
+exact_x = @(x)+5*x.^4;%我是个傻逼我是个傻逼我是个傻逼我是个傻逼！
 
 % Setup the mesh
 pp   = 1;              % polynomial degree
@@ -144,11 +144,11 @@ end
 
 
 x_hh = 1./ (2: 2: 16);
-plot(log(x_hh), log(e_L2), '-r','LineWidth',3)
+plot(log(x_hh), log(e_L2), '-o','LineWidth',3)
 
 hold on
 
-plot(log(x_hh), log(e_H1), '-k','LineWidth',3)
+plot(log(x_hh), log(e_H1), '-x','LineWidth',3)
 
 slope_e_L2 = (log(e_L2(end))-log(e_L2(1)))/(log(x_hh(end))-log(x_hh(1)));
 
