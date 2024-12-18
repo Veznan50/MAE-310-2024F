@@ -1,37 +1,41 @@
-clear all; clc;
+clear ; clc;
 
 kappa = 1.0; % conductivity
 
-% exact solution
+% exact solution定义四边形精确解
 exact = @(x,y) x*(1-x)*y*(1-y);
-exact_x = @(x,y) (1-2*x)*y*(1-y);
+exact_x = @(x,y) (1-2*x)*y*(1-y);%对x的偏导数
 exact_y = @(x,y) x*(1-x)*(1-2*y);
 
 f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 
 % quadrature rule
-n_int_xi  = 3;
-n_int_eta = 3;
-n_int     = n_int_xi * n_int_eta;
+n_int_xi  = 3;% 定义Gauss积分的xi方向的点数
+n_int_eta = 3;% 定义Gauss积分的eta方向的点数
+n_int     = n_int_xi * n_int_eta;% 计算总的积分点数
 [xi, eta, weight] = Gauss2D(n_int_xi, n_int_eta);
+% 调用Gauss2D函数生成Gauss积分点和权重
 
-% mesh generation
+% mesh generation网格划分
 n_en   = 4;               % number of nodes in an element
 n_el_x = 60;               % number of elements in x-dir
 n_el_y = 60;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y; % total number of elements
 
+%计算x和y方向的节点数以及总节点数。
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
 n_np_y = n_el_y + 1;      % number of nodal points in y-dir
 n_np   = n_np_x * n_np_y; % total number of nodal points
 
+%创建两个数组来存储所有节点的x和y坐标。
 x_coor = zeros(n_np, 1);
 y_coor = x_coor;
 
+%计算x和y方向的网格尺寸。
 hx = 1.0 / n_el_x;        % mesh size in x-dir
 hy = 1.0 / n_el_y;        % mesh size in y-dir
 
-% generate the nodal coordinates
+% generate the nodal coordinates使用双重循环生成所有节点的坐标
 for ny = 1 : n_np_y
   for nx = 1 : n_np_x
     index = (ny-1)*n_np_x + nx; % nodal index
@@ -54,7 +58,7 @@ end
 
 % ID array
 ID = zeros(n_np,1);
-counter = 0;
+counter = 0;%% 初始化计数器
 for ny = 2 : n_np_y - 1
   for nx = 2 : n_np_x - 1
     index = (ny-1)*n_np_x + nx;
@@ -65,7 +69,7 @@ end
 
 n_eq = counter;
 
-LM = ID(IEN);
+LM = ID(IEN);%合并成LM
 
 % allocate the stiffness matrix and load vector
 K = spalloc(n_eq, n_eq, 9 * n_eq);
@@ -124,7 +128,7 @@ for ee = 1 : n_el
         if QQ > 0
           K(PP, QQ) = K(PP, QQ) + k_ele(aa, bb);
         else
-          % modify F with the boundary data
+          % modify F with the boundary data，改边界条件g
           % here we do nothing because the boundary data g is zero or
           % homogeneous
         end
