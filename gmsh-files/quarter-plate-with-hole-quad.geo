@@ -1,7 +1,7 @@
 R = 0.3;
 L = 1.0;
 
-Point(1) = {L, -L, 0};
+Point(1) = {L, -L, 0};%哈哈哈
 Point(2) = {L, L, 0};
 Point(3) = {-L, L, 0};
 Point(4) = {-L, -L, 0};
