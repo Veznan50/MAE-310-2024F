@@ -1,57 +1,52 @@
 clear ; clc;
 
 kappa = 1.0; % conductivity
-%另存了一个算四边形收敛速度的代码文件，这里专门改三角单元
-% exact solution定义四边形精确解
+
+% exact solution
 exact = @(x,y) x*(1-x)*y*(1-y);
-exact_x = @(x,y) (1-2*x)*y*(1-y);%对x的偏导数
-exact_y = @(x,y) x*(1-x)*(1-2*y);%对y偏导
+exact_x = @(x,y) (1-2*x)*y*(1-y);
+exact_y = @(x,y) x*(1-x)*(1-2*y);
 
 f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 
 % quadrature rule
-n_int_xi  = 3;% 定义Gauss积分的xi方向的点数
-n_int_eta = 3;% 定义Gauss积分的eta方向的点数
-n_int     = n_int_xi * n_int_eta;% 计算总的积分点数
+n_int_xi  = 3;
+n_int_eta = 3;
+n_int     = n_int_xi * n_int_eta;
 [xi, eta, weight] = Gauss2D(n_int_xi, n_int_eta);
-% 调用Gauss2D函数生成Gauss积分点和权重，这里应该不用管吧
 
-% mesh generation网格划分，改三角
-n_en   = 3;               % number of nodes in an element，三角改3？
-n_el_x = 60*2;               % number of elements in x-dir，元素数，这咋改，也是两倍吗。
-n_el_y = 60*2;               % number of elements in y-dir
-%这改完，后面节点数要改，多除2，网格尺寸也要改
-n_el   = 2*n_el_x * n_el_y; % total number of elements三角要两倍单元数
+% mesh generation
+n_en   = 4;               % number of nodes in an element
+n_el_x = 60;               % number of elements in x-dir
+n_el_y = 60;               % number of elements in y-dir
+n_el   = n_el_x * n_el_y; % total number of elements
 
-%计算x和y方向的节点数以及总节点数。节点数不变，但是单元数变了
-n_np_x = n_el_x/2 + 1;      % number of nodal points in x-dir
-n_np_y = n_el_y/2 + 1;      % number of nodal points in y-dir
-n_np   = n_np_x * n_np_y; % total number of nodal points总节点数不变
+n_np_x = n_el_x + 1;      % number of nodal points in x-dir
+n_np_y = n_el_y + 1;      % number of nodal points in y-dir
+n_np   = n_np_x * n_np_y; % total number of nodal points
 
-%创建两个数组来存储所有节点的x和y坐标。x、y的总量为nnp
 x_coor = zeros(n_np, 1);
 y_coor = x_coor;
 
-%计算x和y方向的网格尺寸。
-hx = 2.0 / n_el_x;        % mesh size in x-dir，改成2*
-hy = 2.0 / n_el_y;        % mesh size in y-dir，改成2*
+hx = 1.0 / n_el_x;        % mesh size in x-dir
+hy = 1.0 / n_el_y;        % mesh size in y-dir
 
-% generate the nodal coordinates使用双重循环生成所有节点的坐标，应该不用改
+% generate the nodal coordinates
 for ny = 1 : n_np_y
   for nx = 1 : n_np_x
-    index = (ny-1)*n_np_x + nx; % nodal index，全局坐标索引
+    index = (ny-1)*n_np_x + nx; % nodal index
     x_coor(index) = (nx-1) * hx;
     y_coor(index) = (ny-1) * hy;
   end
 end
 
-% IEN array三角元素要改IEN，一个三角元里只有3个节点
-IEN = zeros(n_el, n_en);%IEN=（元素编号，元素内节点编号=3）
+% IEN array
+IEN = zeros(n_el, n_en);
 for ex = 1 : n_el_x
   for ey = 1 : n_el_y
     ee = (ey-1) * n_el_x + ex; % element index
-    IEN(ee*2-1, 1) = (ey-1) * n_np_x + ex;
-    IEN(ee*2-1, 2) = (ey-1) * n_np_x + ex + 1;
+    IEN(ee, 1) = (ey-1) * n_np_x + ex;
+    IEN(ee, 2) = (ey-1) * n_np_x + ex + 1;
     IEN(ee, 3) =  ey    * n_np_x + ex + 1;
     IEN(ee, 4) =  ey    * n_np_x + ex;
   end
@@ -59,7 +54,7 @@ end
 
 % ID array
 ID = zeros(n_np,1);
-counter = 0;%% 初始化计数器
+counter = 0;
 for ny = 2 : n_np_y - 1
   for nx = 2 : n_np_x - 1
     index = (ny-1)*n_np_x + nx;
@@ -70,7 +65,7 @@ end
 
 n_eq = counter;
 
-LM = ID(IEN);%合并成LM
+LM = ID(IEN);
 
 % allocate the stiffness matrix and load vector
 K = spalloc(n_eq, n_eq, 9 * n_eq);
@@ -129,7 +124,7 @@ for ee = 1 : n_el
         if QQ > 0
           K(PP, QQ) = K(PP, QQ) + k_ele(aa, bb);
         else
-          % modify F with the boundary data，改边界条件g
+          % modify F with the boundary data
           % here we do nothing because the boundary data g is zero or
           % homogeneous
         end
