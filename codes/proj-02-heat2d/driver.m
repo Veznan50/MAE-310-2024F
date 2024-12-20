@@ -100,8 +100,9 @@ for ee = 1 : n_el
       dy_deta = dy_deta + y_ele(aa) * Na_eta;
     end
     
-    detJ = dx_dxi * dy_deta - dx_deta * dy_dxi;
-    
+    detJ = dx_dxi * dy_deta - dx_deta * dy_dxi;%雅克比行列式，后面要用
+    reveJ=1/detJ;
+
     for aa = 1 : n_en
       Na = Triangle(aa, xi(ll), eta(ll));
       [Na_xi, Na_eta] = Triangle_grad(aa, xi(ll), eta(ll));
@@ -158,5 +159,80 @@ end
 % save the solution vector and number of elements to disp with name
 % HEAT.mat
 save("HEAT", "disp", "n_el_x", "n_el_y");
+
+
+ % e_0 第一个误差,dx_dxi 要改成detJ,在103行
+    tops = 0.0;     %分子
+    bottoms = 0.0;   %分母
+    for ee = 1 : n_el
+        for qua = 1 : n_int   
+           
+            top_1 = 0.0;%数值
+            top_2 = 0.0;%精确
+            bottom = 0.0;
+            for aa = 1 : n_en
+               
+                top_1 = top_1 + disp(IEN(ee, aa)) * Triangle(aa, xi, eta);
+                top_2 = top_2 + x_coor(IEN(ee, aa)) * Triangle(aa, xi, eta);
+                bottom = bottom + x_coor(IEN(ee, aa)) * Triangle(aa, xi, eta);
+            end
+            top = (top_1 - exact(top_2))^2 * detJ * weight(qua);
+            tops = tops + top;
+            bottom = exact(bottom)^2 * detJ * weight(qua);
+            bottoms =bottoms + bottom;
+        end
+    end
+    e_0(ii) = sqrt(tops/bottoms);
+   
+
+    % e_1 第二个误差
+    tops = 0.0;
+    bottoms = 0.0;
+    for ee = 1 : n_el
+        for qua = 1 : n_int
+            
+            top_1 = 0.0;
+            top_2 = 0.0;
+            bottom = 0.0;
+            for aa = 1 : n_en
+                
+                top_1 = top_1 + disp(IEN(ee, aa)) * Triangle_grad(aa, xi, eta);
+                top_2 = top_2 + x_coor(IEN(ee, aa)) * Triangle(aa, xi, eta);
+                bottom = bottom + x_coor(IEN(ee, aa)) * Triangle(aa, xi, eta);
+            end
+            
+            top = (top_1 * reveJ - exact_x(top_2))^2 * detJ * weight(qua);
+            tops = tops + top;
+            bottom = (exact_x(bottom))^2 * detJ * weight(qua);
+            bottoms =bottoms + bottom;
+        end
+    end
+    e_1(ii) = sqrt(tops/bottoms);
+
+%计算x和y方向的网格尺寸。
+hx = 1.0 / n_el_x;        % mesh size in x-dir
+hy = 1.0 / n_el_y;        % mesh size in y-dir
+
+%hx = 1./ (2: 2: 16);
+plot(log(hx), log(e_0), '-o','LineWidth',3)
+
+hold on
+
+plot(log(hx), log(e_1), '-x','LineWidth',3)
+
+slope_e_0 = (log(e_0(end))-log(e_0(1)))/(log(hx(end))-log(hx(1)));
+
+slope_e_1 = (log(e_1(end))-log(e_1(1)))/(log(hx(end))-log(hx(1)));
+
+
+
+
+
+
+
+
+
+
+
 
 % EOF
