@@ -9,7 +9,7 @@ exact_y = @(x,y) x*(1-x)*(1-2*y);%对y偏导
 
 f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 
-% quadrature rule
+% Trianglerature rule
 n_int_xi  = 3;% 定义Gauss积分的xi方向的点数
 n_int_eta = 3;% 定义Gauss积分的eta方向的点数
 n_int     = n_int_xi * n_int_eta;% 计算总的积分点数
@@ -18,14 +18,14 @@ n_int     = n_int_xi * n_int_eta;% 计算总的积分点数
 
 % mesh generation网格划分，改三角
 n_en   = 3;               % number of nodes in an element，三角改3？
-n_el_x = 60*2;               % number of elements in x-dir，元素数，这咋改，也是两倍吗。
-n_el_y = 60*2;               % number of elements in y-dir
+n_el_x = 60;               % number of elements in x-dir，元素数，这咋改，也是两倍吗。
+n_el_y = 60;               % number of elements in y-dir
 %这改完，后面节点数要改，多除2，网格尺寸也要改
 n_el   = 2*n_el_x * n_el_y; % total number of elements三角要两倍单元数
 
 %计算x和y方向的节点数以及总节点数。节点数不变，但是单元数变了
-n_np_x = n_el_x/2 + 1;      % number of nodal points in x-dir
-n_np_y = n_el_y/2 + 1;      % number of nodal points in y-dir
+n_np_x = n_el_x + 1;      % number of nodal points in x-dir
+n_np_y = n_el_y + 1;      % number of nodal points in y-dir
 n_np   = n_np_x * n_np_y; % total number of nodal points总节点数不变
 
 %创建两个数组来存储所有节点的x和y坐标。x、y的总量为nnp
@@ -33,8 +33,8 @@ x_coor = zeros(n_np, 1);
 y_coor = x_coor;
 
 %计算x和y方向的网格尺寸。
-hx = 2.0 / n_el_x;        % mesh size in x-dir，改成2*
-hy = 2.0 / n_el_y;        % mesh size in y-dir，改成2*
+hx = 1.0 / n_el_x;        % mesh size in x-dir
+hy = 1.0 / n_el_y;        % mesh size in y-dir
 
 % generate the nodal coordinates使用双重循环生成所有节点的坐标，应该不用改
 for ny = 1 : n_np_y
@@ -51,9 +51,11 @@ for ex = 1 : n_el_x
   for ey = 1 : n_el_y
     ee = (ey-1) * n_el_x + ex; % element index
     IEN(ee*2-1, 1) = (ey-1) * n_np_x + ex;
-    IEN(ee*2-1, 2) = (ey-1) * n_np_x + ex + 1;
-    IEN(ee, 3) =  ey    * n_np_x + ex + 1;
-    IEN(ee, 4) =  ey    * n_np_x + ex;
+    IEN(ee*2-1, 2) =  ey    * n_np_x + ex + 1;
+    IEN(ee*2-1, 3) =  ey    * n_np_x + ex ;
+    IEN(ee*2, 1)   = (ey-1) * n_np_x + ex;
+    IEN(ee*2, 2)   = (ey-1) * n_np_x + ex + 1;
+    IEN(ee*2, 3)   =  ey    * n_np_x + ex + 1;
   end
 end
 
@@ -89,9 +91,9 @@ for ee = 1 : n_el
     dx_dxi = 0.0; dx_deta = 0.0;
     dy_dxi = 0.0; dy_deta = 0.0;
     for aa = 1 : n_en
-      x_l = x_l + x_ele(aa) * Quad(aa, xi(ll), eta(ll));
-      y_l = y_l + y_ele(aa) * Quad(aa, xi(ll), eta(ll));    
-      [Na_xi, Na_eta] = Quad_grad(aa, xi(ll), eta(ll));
+      x_l = x_l + x_ele(aa) * Triangle(aa, xi(ll), eta(ll));
+      y_l = y_l + y_ele(aa) * Triangle(aa, xi(ll), eta(ll));    
+      [Na_xi, Na_eta] = Triangle_grad(aa, xi(ll), eta(ll));
       dx_dxi  = dx_dxi  + x_ele(aa) * Na_xi;
       dx_deta = dx_deta + x_ele(aa) * Na_eta;
       dy_dxi  = dy_dxi  + y_ele(aa) * Na_xi;
@@ -101,23 +103,23 @@ for ee = 1 : n_el
     detJ = dx_dxi * dy_deta - dx_deta * dy_dxi;
     
     for aa = 1 : n_en
-      Na = Quad(aa, xi(ll), eta(ll));
-      [Na_xi, Na_eta] = Quad_grad(aa, xi(ll), eta(ll));
+      Na = Triangle(aa, xi(ll), eta(ll));
+      [Na_xi, Na_eta] = Triangle_grad(aa, xi(ll), eta(ll));
       Na_x = (Na_xi * dy_deta - Na_eta * dy_dxi) / detJ;
       Na_y = (-Na_xi * dx_deta + Na_eta * dx_dxi) / detJ;
       
       f_ele(aa) = f_ele(aa) + weight(ll) * detJ * f(x_l, y_l) * Na;
       
       for bb = 1 : n_en
-        Nb = Quad(bb, xi(ll), eta(ll));
-        [Nb_xi, Nb_eta] = Quad_grad(bb, xi(ll), eta(ll));
+        Nb = Triangle(bb, xi(ll), eta(ll));
+        [Nb_xi, Nb_eta] = Triangle_grad(bb, xi(ll), eta(ll));
         Nb_x = (Nb_xi * dy_deta - Nb_eta * dy_dxi) / detJ;
         Nb_y = (-Nb_xi * dx_deta + Nb_eta * dx_dxi) / detJ;
         
         k_ele(aa, bb) = k_ele(aa,bb) + weight(ll) * detJ * kappa * (Na_x * Nb_x + Na_y * Nb_y);
       end % end of bb loop
     end % end of aa loop
-  end % end of quadrature loop
+  end % end of Trianglerature loop
  
   for aa = 1 : n_en
     PP = LM(ee, aa);
