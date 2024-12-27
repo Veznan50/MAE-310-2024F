@@ -3,13 +3,20 @@ clear ; clc;
 kappa = 1.0; % conductivity
 %另存了一个算四边形收敛速度的代码文件，这里专门改三角单元
 % exact solution定义四边形精确解
-exact = @(x,y) x*(1-x)*y*(1-y);
+exact   = @(x,y) x*(1-x)*y*(1-y);
 exact_x = @(x,y) (1-2*x)*y*(1-y);%对x的偏导数
 exact_y = @(x,y) x*(1-x)*(1-2*y);%对y偏导
 
+exact_xx = @(x,y) -2*y*(1-y);
+exact_yy = @(x,y) -2*x*(1-x);
+exact_xy = @(x,y) (1-2*x)*(1-2*y);
+
 f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 
-% Trianglerature rule
+store = zeros(10,3);
+
+for iii = 10:10:100
+% quad rule
 n_int_xi  = 3;% 定义Gauss积分的xi方向的点数
 n_int_eta = 3;% 定义Gauss积分的eta方向的点数
 n_int     = n_int_xi * n_int_eta;% 计算总的积分点数
@@ -18,8 +25,8 @@ n_int     = n_int_xi * n_int_eta;% 计算总的积分点数
 
 % mesh generation网格划分，改三角
 n_en   = 3;               % number of nodes in an element，三角改3？
-n_el_x = 60;               % number of elements in x-dir，元素数，这咋改，也是两倍吗。
-n_el_y = 60;               % number of elements in y-dir
+n_el_x = iii;               % number of elements in x-dir，元素数，这咋改，也是两倍吗。
+n_el_y = iii;               % number of elements in y-dir
 %这改完，后面节点数要改，多除2，网格尺寸也要改
 n_el   = 2*n_el_x * n_el_y; % total number of elements三角要两倍单元数
 
@@ -87,7 +94,7 @@ for ee = 1 : n_el
   f_ele = zeros(n_en, 1);    % element load vector
   
   for ll = 1 : n_int
-    x_l = 0.0; y_l = 0.0;
+    x_l = 0.0; y_l = 0.0;%后面算误差直接用这块循环
     dx_dxi = 0.0; dx_deta = 0.0;
     dy_dxi = 0.0; dy_deta = 0.0;
     for aa = 1 : n_en
@@ -120,7 +127,7 @@ for ee = 1 : n_el
         k_ele(aa, bb) = k_ele(aa,bb) + weight(ll) * detJ * kappa * (Na_x * Nb_x + Na_y * Nb_y);
       end % end of bb loop
     end % end of aa loop
-  end % end of Trianglerature loop
+  end% end of Tri loop
  
   for aa = 1 : n_en
     PP = LM(ee, aa);
@@ -133,8 +140,7 @@ for ee = 1 : n_el
           K(PP, QQ) = K(PP, QQ) + k_ele(aa, bb);
         else
           % modify F with the boundary data，改边界条件g
-          % here we do nothing because the boundary data g is zero or
-          % homogeneous
+          % here we do nothing because the boundary data g is zero or homogeneous
         end
       end  
     end
@@ -158,81 +164,85 @@ end
 
 % save the solution vector and number of elements to disp with name
 % HEAT.mat
-save("HEAT", "disp", "n_el_x", "n_el_y");
+%save("HEAT", "disp", "n_el_x", "n_el_y");
 
+%解题目HW6中2-b问的
+e_0 = 0.0; %||e||0，先这样记着，最后再统一开根号
+e_1 = 0.0; %||e||1
+u_2 = 0.0; %||u||2
 
- % e_0 第一个误差,dx_dxi 要改成detJ,在103行
-    tops = 0.0;     %分子
-    bottoms = 0.0;   %分母
-    for ee = 1 : n_el
-        for qua = 1 : n_int   
-           
-            top_1 = 0.0;%数值
-            top_2 = 0.0;%精确
-            bottom = 0.0;
-            for aa = 1 : n_en
-               
-                top_1 = top_1 + disp(IEN(ee, aa)) * Triangle(aa, xi, eta);
-                top_2 = top_2 + x_coor(IEN(ee, aa)) * Triangle(aa, xi, eta);
-                bottom = bottom + x_coor(IEN(ee, aa)) * Triangle(aa, xi, eta);
-            end
-            top = (top_1 - exact(top_2))^2 * detJ * weight(qua);
-            tops = tops + top;
-            bottom = exact(bottom)^2 * detJ * weight(qua);
-            bottoms =bottoms + bottom;
+for ee = 1 : n_el
+    x_ele = x_coor(IEN(ee, :));
+    y_ele = y_coor(IEN(ee, :));
+    d_ele = disp(IEN(ee, :));
+    %计算坐标位移，直接用老师的
+    for ll = 1 : n_int
+        x_l = 0.0; y_l = 0.0;
+        dx_dxi = 0.0; dx_deta = 0.0; 
+        dy_dxi = 0.0; dy_deta = 0.0;
+        for aa = 1 : n_en
+            x_l = x_l + x_ele(aa) * Triangle(aa, xi(ll), eta(ll)); 
+            y_l = y_l + y_ele(aa) * Triangle(aa, xi(ll), eta(ll));
+            [Na_xi, Na_eta] =  Triangle_grad(aa, xi(ll), eta(ll));
+            dx_dxi  = dx_dxi  + x_ele(aa) * Na_xi;
+            dx_deta = dx_deta + x_ele(aa) * Na_eta;
+            dy_dxi  = dy_dxi  + y_ele(aa) * Na_xi;
+            dy_deta = dy_deta + y_ele(aa) * Na_eta;
         end
-    end
-    e_0(ii) = sqrt(tops/bottoms);
-   
-
-    % e_1 第二个误差
-    tops = 0.0;
-    bottoms = 0.0;
-    for ee = 1 : n_el
-        for qua = 1 : n_int
-            
-            top_1 = 0.0;
-            top_2 = 0.0;
-            bottom = 0.0;
-            for aa = 1 : n_en
-                
-                top_1 = top_1 + disp(IEN(ee, aa)) * Triangle_grad(aa, xi, eta);
-                top_2 = top_2 + x_coor(IEN(ee, aa)) * Triangle(aa, xi, eta);
-                bottom = bottom + x_coor(IEN(ee, aa)) * Triangle(aa, xi, eta);
-            end
-            
-            top = (top_1 * reveJ - exact_x(top_2))^2 * detJ * weight(qua);
-            tops = tops + top;
-            bottom = (exact_x(bottom))^2 * detJ * weight(qua);
-            bottoms =bottoms + bottom;
+        detJ = dx_dxi * dy_deta - dx_deta * dy_dxi;
+        reveJ=1/detJ;
+        %计算各个数值解
+        uh_l   = 0.0; 
+        uh_x_l = 0.0; 
+        uh_y_l = 0.0;
+        for aa = 1 : n_en %this loop is to calculate the value of uh_l
+            %计算数值解的位移
+            uh_l = uh_l + d_ele(aa) * Triangle(aa, xi(ll), eta(ll));
+            [Na_xi, Na_eta] = Triangle_grad(aa, xi(ll), eta(ll));
+            %计算数值解位移在x和y方向上的导数用于u_2中
+            uh_x_l = uh_x_l + d_ele(aa) * (Na_xi * dy_deta - Na_eta * dy_dxi) * reveJ;
+            uh_y_l = uh_y_l + d_ele(aa) * (Na_eta * dx_dxi - Na_xi * dx_deta) * reveJ;
         end
+        %计算精确解u
+        u_l    = exact   (x_l, y_l);
+        u_x_l  = exact_x (x_l, y_l); 
+        u_y_l  = exact_y (x_l, y_l);
+        u_xx_l = exact_xx(x_l, y_l); 
+        u_xy_l = exact_xy(x_l, y_l); 
+        u_yy_l = exact_yy(x_l, y_l);
+        %算误差的平方，表达式在bb提交的作业中有写明
+        e_0 = e_0 + weight(ll) * (uh_l - u_l)^2;
+        e_1 = e_1 + weight(ll) * ((uh_l - u_l)^2 + (uh_x_l - u_x_l)^2 + (uh_y_l - u_y_l)^2);
+        u_2 = u_2 + weight(ll) * (u_l^2 + u_x_l^2 + u_xx_l^2 + 2*u_xy_l^2 + u_y_l^2 + u_yy_l^2);
     end
-    e_1(ii) = sqrt(tops/bottoms);
+end
 
-%计算x和y方向的网格尺寸。
-hx = 1.0 / n_el_x;        % mesh size in x-dir
-hy = 1.0 / n_el_y;        % mesh size in y-dir
+ch2 = sqrt(e_0/u_2);%开根号
+ch1 = sqrt(e_1/u_2);
+store(iii/10,:) = [log(hx), log(ch2), log(ch1)];
+end
 
-%hx = 1./ (2: 2: 16);
-plot(log(hx), log(e_0), '-o','LineWidth',3)
-
+plot(store(:,1),store(:,2),'-o','LineWidth',3);
 hold on
+plot(store(:,1),store(:,3),'-x','LineWidth',3);
+%第一个线对应e_0，第二个对应e_1
+% 计算 L2 范数误差曲线的斜率
+coeff_L2 = polyfit(store(:,1), store(:,2), 1);
+slope_L2 = coeff_L2(1); 
 
-plot(log(hx), log(e_1), '-x','LineWidth',3)
+% 计算 H1 范数误差曲线的斜率
+coeff_H1 = polyfit(store(:,1), store(:,3), 1);
+slope_H1 = coeff_H1(1); 
 
-slope_e_0 = (log(e_0(end))-log(e_0(1)))/(log(hx(end))-log(hx(1)));
-
-slope_e_1 = (log(e_1(end))-log(e_1(1)))/(log(hx(end))-log(hx(1)));
-
-
-
-
-
-
-
-
-
+% 输出斜率
+fprintf('L2 范数误差曲线的斜率: %f\n', slope_L2);
+fprintf('H1 范数误差曲线的斜率: %f\n', slope_H1);
 
 
+%%plot(log(hx), log(e_0), '-o','LineWidth',3)
+%hold on
+%plot(log(hx), log(e_1), '-x','LineWidth',3)
+%slope_e_0 = (log(e_0(end))-log(e_0(1)))/(log(hx(end))-log(hx(1)));
+%slope_e_1 = (log(e_1(end))-log(e_1(1)))/(log(hx(end))-log(hx(1)));
 
 % EOF

@@ -7,9 +7,14 @@ exact = @(x,y) x*(1-x)*y*(1-y);
 exact_x = @(x,y) (1-2*x)*y*(1-y);
 exact_y = @(x,y) x*(1-x)*(1-2*y);
 
+exact_xx = @(x,y) -2*y*(1-y);
+exact_xy = @(x,y) (1-2*x)*(1-2*y);
+exact_yy = @(x,y) -2*x*(1-x);
+
 f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 
 % quadrature rule
+
 n_int_xi  = 3;
 n_int_eta = 3;
 n_int     = n_int_xi * n_int_eta;
@@ -148,8 +153,7 @@ for ii = 1 : n_np
   end
 end
 
-% save the solution vector and number of elements to disp with name
-% HEAT.mat
-save("HEAT", "disp", "n_el_x", "n_el_y");
 
-% EOF
+
+
+
