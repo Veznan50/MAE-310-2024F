@@ -12,7 +12,7 @@ exact_xy = @(x,y) (1-2*x)*(1-2*y);
 exact_yy = @(x,y) -2*x*(1-x);
 
 f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
-
+for iii = 10:10:100
 % quadrature rule
 
 n_int_xi  = 3;
@@ -22,8 +22,8 @@ n_int     = n_int_xi * n_int_eta;
 
 % mesh generation
 n_en   = 4;               % number of nodes in an element
-n_el_x = 60;               % number of elements in x-dir
-n_el_y = 60;               % number of elements in y-dir
+n_el_x = iii;               % number of elements in x-dir
+n_el_y = iii;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -153,6 +153,78 @@ for ii = 1 : n_np
   end
 end
 
+
+%解题目HW6中2-b问的
+e_0 = 0.0; %||e||0，先这样记着，最后再统一开根号
+e_1 = 0.0; %||e||1
+u_2 = 0.0; %||u||2
+
+for ee = 1 : n_el
+    x_ele = x_coor(IEN(ee, :));
+    y_ele = y_coor(IEN(ee, :));
+    d_ele = disp(IEN(ee, :));
+    %计算坐标位移，直接用老师的
+    for ll = 1 : n_int
+        x_l = 0.0; y_l = 0.0;
+        dx_dxi = 0.0; dx_deta = 0.0; 
+        dy_dxi = 0.0; dy_deta = 0.0;
+        for aa = 1 : n_en
+            x_l = x_l + x_ele(aa) * Quad(aa, xi(ll), eta(ll)); 
+            y_l = y_l + y_ele(aa) * Quad(aa, xi(ll), eta(ll));
+            [Na_xi, Na_eta] =  Quad_grad(aa, xi(ll), eta(ll));
+            dx_dxi  = dx_dxi  + x_ele(aa) * Na_xi;
+            dx_deta = dx_deta + x_ele(aa) * Na_eta;
+            dy_dxi  = dy_dxi  + y_ele(aa) * Na_xi;
+            dy_deta = dy_deta + y_ele(aa) * Na_eta;
+        end
+        detJ = dx_dxi * dy_deta - dx_deta * dy_dxi;
+        reveJ=1/detJ;
+        %计算各个数值解
+        uh_l   = 0.0; 
+        uh_x_l = 0.0; 
+        uh_y_l = 0.0;
+        for aa = 1 : n_en %this loop is to calculate the value of uh_l
+            %计算数值解的位移
+            uh_l = uh_l + d_ele(aa) * Quad(aa, xi(ll), eta(ll));
+            [Na_xi, Na_eta] = Quad_grad(aa, xi(ll), eta(ll));
+            %计算数值解位移在x和y方向上的导数用于u_2中
+            uh_x_l = uh_x_l + d_ele(aa) * (Na_xi * dy_deta - Na_eta * dy_dxi) * reveJ;
+            uh_y_l = uh_y_l + d_ele(aa) * (Na_eta * dx_dxi - Na_xi * dx_deta) * reveJ;
+        end
+        %计算精确解u
+        u_l    = exact   (x_l, y_l);
+        u_x_l  = exact_x (x_l, y_l); 
+        u_y_l  = exact_y (x_l, y_l);
+        u_xx_l = exact_xx(x_l, y_l); 
+        u_xy_l = exact_xy(x_l, y_l); 
+        u_yy_l = exact_yy(x_l, y_l);
+        %算误差的平方，表达式在bb提交的作业中有写明
+        e_0 = e_0 + weight(ll) * (uh_l - u_l)^2;
+        e_1 = e_1 + weight(ll) * ((uh_l - u_l)^2 + (uh_x_l - u_x_l)^2 + (uh_y_l - u_y_l)^2);
+        u_2 = u_2 + weight(ll) * (u_l^2 + u_x_l^2 + u_xx_l^2 + 2*u_xy_l^2 + u_y_l^2 + u_yy_l^2);
+    end
+end
+
+ch2 = sqrt(e_0/u_2);%开根号
+ch1 = sqrt(e_1/u_2);
+store(iii/10,:) = [log(hx), log(ch2), log(ch1)];
+end
+
+plot(store(:,1),store(:,2),'-o','LineWidth',3);
+hold on
+plot(store(:,1),store(:,3),'-x','LineWidth',3);
+%第一个线对应e_0，第二个对应e_1
+% 计算 L2 范数误差曲线的斜率
+coeff_L2 = polyfit(store(:,1), store(:,2), 1);
+slope_L2 = coeff_L2(1); 
+
+% 计算 H1 范数误差曲线的斜率
+coeff_H1 = polyfit(store(:,1), store(:,3), 1);
+slope_H1 = coeff_H1(1); 
+
+% 输出斜率
+fprintf('L2 范数误差曲线的斜率: %f\n', slope_L2);
+fprintf('H1 范数误差曲线的斜率: %f\n', slope_H1);
 
 
 
