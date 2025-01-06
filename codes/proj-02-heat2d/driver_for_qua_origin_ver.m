@@ -132,6 +132,59 @@ for ee = 1 : n_el
           % modify F with the boundary data
           % here we do nothing because the boundary data g is zero or
           % homogeneous
+% 狄利克雷边界条件dirichlet boundary condition，先把边角节点定住，
+%加网格后再找规律把各个边线的边界条件完善
+dirichlet_location=zeros(n_np,2);
+for bc = 1 : n_np
+    if x_coor(bc) == 0 
+        dirichlet_location(bc,1)=bc;
+        dirichlet_location(bc,2)=bc;
+    end
+end
+dirichlet_g=zeros(n_np,2);
+for bc=1 : n_np
+    if ismember(bc,dirichlet_location)
+    dirichlet_g(bc,1)=0;
+    dirichlet_g(bc,2)=0;
+    end
+end
+% 设置节点1和5的第二个自由度上的位移为0
+dirichlet_location(1, 2) = 1;
+dirichlet_location(5, 2) = 1;
+dirichlet_g(1, 2) = 0;
+dirichlet_g(5, 2) = 0;
+
+% 设置节点3和6的第一个自由度上的位移为0
+dirichlet_location(3, 1) = 1;
+dirichlet_location(6, 1) = 1;
+dirichlet_g(3, 1) = 0;
+dirichlet_g(6, 1) = 0;
+
+% 诺伊曼边界条件neumann boundary condition
+neumann_h=zeros(n_np,2);
+for bc=1 : n_np
+    if x_coor(bc)==1
+        neumann_h(bc,1)=1;
+        neumann_h(bc,2)=0;
+    end
+end
+%设置外力加载为10kPa
+neumann_h(1, 1) = 10;  % 节点1的第一个自由度
+neumann_h(2, 1) = 10;  % 节点2的第一个自由度
+
+% 设置节点1和5的第一个自由度上的应力为0
+neumann_h(1, 1) = 0;
+neumann_h(5, 1) = 0;
+
+% 设置节点3和6的第二个自由度上的应力为0
+neumann_h(3, 2) = 0;
+neumann_h(6, 2) = 0;
+
+% 设置节点6，4和5的应力为0
+neumann_h(4, 1) = 0;
+neumann_h(4, 2) = 0;
+neumann_h(6, 1) = 0;
+neumann_h(6, 2) = 0;
         end
       end  
     end
