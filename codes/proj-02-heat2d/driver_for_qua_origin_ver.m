@@ -12,6 +12,7 @@ exact_xy = @(x,y) (1-2*x)*(1-2*y);
 exact_yy = @(x,y) -2*x*(1-x);
 
 f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
+
 for iii = 10:10:100
 % quadrature rule
 
