@@ -1,6 +1,8 @@
 clear ; clc;
 
 kappa = 1.0; % conductivity
+E = 10^9;
+v = 0.3;
 
 % exact solution
 exact = @(x,y) x*(1-x)*y*(1-y);
@@ -11,7 +13,15 @@ exact_xx = @(x,y) -2*y*(1-y);
 exact_xy = @(x,y) (1-2*x)*(1-2*y);
 exact_yy = @(x,y) -2*x*(1-x);
 
-f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
+%f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
+%平面应力推导出的，u和v都是上面这个exact = @(x,y) x*(1-x)*y*(1-y)
+f1 = (2*E*y*(y - 1))/(v^2 - 1) - (E*(v/2 - 1/2)*((x - 1)*(y - 1) + x*y + ...
+    2*x*(x - 1) + x*(y - 1) + y*(x - 1)))/(v^2 - 1) + (E*v*((x - 1)*(y - 1) + ...
+    x*y + x*(y - 1) + y*(x - 1)))/(v^2 - 1);%x方向分量
+f2 = (2*E*x*(x - 1))/(v^2 - 1) - (E*(v/2 - 1/2)*((x - 1)*(y - 1) + x*y + ...
+    x*(y - 1) + y*(x - 1) + 2*y*(y - 1)))/(v^2 - 1) + (E*v*((x - 1)*(y - 1) + ...
+    x*y + x*(y - 1) + y*(x - 1)))/(v^2 - 1);%y方向分量
+
 
 for iii = 10:10:100
 % quadrature rule
