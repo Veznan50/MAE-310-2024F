@@ -36,9 +36,13 @@ Recombine Surface{2};
 Mesh.ElementOrder = 1;
 Mesh.Algorithm = 8;
 
-// EOF//+
-Physical Curve("ff", 8) = {2, 1};
 //+
-Physical Curve("ll", 9) = {3, 4, 5, 6, 7};
+Physical Curve("top", 8) = {4};
 //+
-Physical Surface("ss", 10) = {1, 2};
+Physical Curve("left", 9) = {3};
+//+
+Physical Curve("right", 10) = {5};
+//+
+Physical Curve("bottom", 11) = {6};
+//+
+Physical Curve("hole", 12) = {2, 1};

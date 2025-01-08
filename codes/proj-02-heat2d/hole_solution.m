@@ -1,8 +1,9 @@
-function [sigma_xx, sigma_yy, sigma_xy] = analytic_stress_result(Tx, R, x, y)
+
+function [sigma_xx, sigma_yy, sigma_xy] = hole_solution( R, x, y)
     % 极坐标转成xy坐标，计算 r 和 theta
     r = sqrt(x.^2 + y.^2);
     theta = atan2(y, x);
-    
+    Tx=10;
     % 两个三角函数 cos(2*theta) 和 sin(2*theta)专门写一下
     cos_2theta = (x.^2 - y.^2) ./ (r.^2);
     sin_2theta = (2 * x .* y) ./ (r.^2);
@@ -22,5 +23,4 @@ function [sigma_xx, sigma_yy, sigma_xy] = analytic_stress_result(Tx, R, x, y)
     sigma_xy = (sigma_theta_theta - sigma_rr) .* (x ./ r) .* (y ./ r) + ...
                sigma_rtheta .* ((x ./ r).^2 - (y ./ r).^2);
 end
-
 
