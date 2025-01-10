@@ -25,7 +25,7 @@ Plane Surface(1) = {1};
 Curve Loop(2) = {7, -1, -6, -5};
 Plane Surface(2) = {2};
 
-Transfinite Line{1, 2, 3, 4, 5, 6, 7} = 5;
+Transfinite Line{1, 2, 3, 4, 5, 6, 7} = 9;
 
 Transfinite Surface{1};
 Transfinite Surface{2};
@@ -37,12 +37,16 @@ Mesh.ElementOrder = 1;
 Mesh.Algorithm = 8;
 
 //+
-Physical Curve("top", 8) = {4};
+Physical Curve("right", 8) = {5};
 //+
-Physical Curve("left", 9) = {3};
+Physical Curve("top", 9) = {4};
 //+
-Physical Curve("right", 10) = {5};
+Physical Curve("left", 10) = {3};
 //+
 Physical Curve("bottom", 11) = {6};
 //+
-Physical Curve("hole", 12) = {2, 1};
+Physical Surface("surf", 12) = {1, 2};
+//+
+Physical Curve("hole", 13) = {2, 1};
+
+
