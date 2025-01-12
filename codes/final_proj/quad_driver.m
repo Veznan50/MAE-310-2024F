@@ -7,7 +7,7 @@ E = 1E9;
 v = 0.3;
 T_x = 1E4;
 R = 0.5;
-store = zeros(4,3);
+store = zeros(3,3);
 % exact solution
 exact = @(x,y) x*(1-x)*y*(1-y);
 exact_x = @(x,y) (1-2*x)*y*(1-y);
@@ -28,7 +28,9 @@ f2 = @(x,y) (2*E*x*(x - 1))/(v^2 - 1) - (E*(v/2 - 1/2)*((x - 1)*(y - 1) + x*y + 
 %传热问题从10间隔10到100没问题
 %这里从10间隔10到100运行内存不足，到70都不行，
 %从20间隔20到100也不行，20到80可以，但是只剩四个点了
-for iii = 20:20:80
+%从30到90间隔30效果更好哦
+for iii = 30:30:90
+
 % quadrature rule不用动
 n_int_xi  = 3;
 n_int_eta = 3;
@@ -210,7 +212,6 @@ for ii = 1 : n_np
     end
 end
 
-
 %解题目HW6中2-b问的
 e_0 = 0.0; %||e||0，先这样记着，最后再统一开根号
 e_1 = 0.0; %||e||1
@@ -273,7 +274,7 @@ end
 
 ch2 = sqrt(e_0/u_2);%开根号
 ch1 = sqrt(e_1/u_2);
-store(iii/20,:) = [log(hx), log(ch2), log(ch1)];
+store(iii/30,:) = [log(hx), log(ch2), log(ch1)];
 end
 
 plot(store(:,1),store(:,2),'-o','LineWidth',3);
@@ -294,4 +295,27 @@ fprintf('H1 范数误差曲线的斜率: %f\n', slope_H1);
 
 
 
+%以下图像绘制需要指定iii的值  
+% 绘制位移 u_x 数值解
+figure;
+hold on;
+trisurf(IEN, x_coor, y_coor, disp_x);
+axis equal;
+colormap jet;
+shading interp;
+title('Displacement (u_x) Numerical');
+xlabel('x - coordinate');
+ylabel('y - coordinate');
+colorbar;
 
+% 绘制位移 u_y 数值解
+figure;
+hold on;
+trisurf(IEN, x_coor, y_coor, disp_y);
+axis equal;
+colormap jet;
+shading interp;
+title('Displacement (u_y) Numerical');
+xlabel('x - coordinate');
+ylabel('y - coordinate');
+colorbar;
